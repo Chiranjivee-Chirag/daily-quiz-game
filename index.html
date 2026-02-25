@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Daily Smart Quiz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: linear-gradient(135deg,#4e73df,#1cc88a);
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+
+    .quiz-box {
+      background: white;
+      max-width: 450px;
+      margin: auto;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+
+    h2 { margin-top:0; }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 8px;
+      background: #4e73df;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      transform: scale(1.03);
+      background:#2e59d9;
+    }
+
+    #timer {
+      font-weight: bold;
+      color: red;
+      margin:10px;
+    }
+
+    #progress {
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .final-score {
+      background:#f8f9fc;
+      padding:15px;
+      border-radius:10px;
+      margin-top:15px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="quiz-box">
+  <h2>🧠 Smart Daily Quiz</h2>
+
+  <div id="start-screen">
+    <p>Learn something new every day!</p>
+    <button onclick="startQuiz()">Start Quiz</button>
+  </div>
+
+  <div id="quiz-screen" style="display:none;">
+    <div id="progress"></div>
+    <div id="timer"></div>
+    <p id="question"></p>
+    <div id="options"></div>
+    <p id="result"></p>
+    <div id="score"></div>
+  </div>
+
+</div>
+
+<script>
+let quiz = [];
+let currentQuestion = 0;
+let score = 0;
+let timeLeft = 15;
+let timerInterval;
+
+async function startQuiz(){
+  document.getElementById("start-screen").style.display="none";
+  document.getElementById("quiz-screen").style.display="block";
+
+  const response = await fetch("https://opentdb.com/api.php?amount=10&type=multiple");
+  const data = await response.json();
+  quiz = data.results;
+
+  loadQuestion();
+}
+
+function startTimer(){
+  timeLeft = 15;
+  document.getElementById("timer").innerText = "⏳ Time Left: "+timeLeft+"s";
+
+  timerInterval = setInterval(()=>{
+    timeLeft--;
+    document.getElementById("timer").innerText = "⏳ Time Left: "+timeLeft+"s";
+
+    if(timeLeft===0){
+      clearInterval(timerInterval);
+      checkAnswer("");
+    }
+  },1000);
+}
+
+function loadQuestion(){
+  const q = quiz[currentQuestion];
+  document.getElementById("progress").innerText =
+    "Question "+(currentQuestion+1)+" of "+quiz.length;
+
+  document.getElementById("question").innerHTML = decodeHTML(q.question);
+
+  const optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML="";
+
+  let options = [...q.incorrect_answers, q.correct_answer];
+  options.sort(()=>Math.random()-0.5);
+
+  options.forEach(option=>{
+    const btn=document.createElement("button");
+    btn.innerHTML=decodeHTML(option);
+    btn.onclick=()=>checkAnswer(option);
+    optionsDiv.appendChild(btn);
+  });
+
+  startTimer();
+}
+
+function checkAnswer(selected){
+  clearInterval(timerInterval);
+  const correct=quiz[currentQuestion].correct_answer;
+  const buttons=document.querySelectorAll("#options button");
+
+  buttons.forEach(btn=>{
+    btn.disabled=true;
+    if(btn.innerHTML===decodeHTML(correct)){
+      btn.style.background="green";
+    }
+    if(btn.innerHTML===decodeHTML(selected) && selected!==correct){
+      btn.style.background="red";
+    }
+  });
+
+  if(selected===correct){
+    score++;
+    document.getElementById("result").innerText="✅ Correct!";
+  } else {
+    document.getElementById("result").innerText="❌ Correct: "+decodeHTML(correct);
+  }
+
+  currentQuestion++;
+
+  if(currentQuestion<quiz.length){
+    setTimeout(()=>{
+      document.getElementById("result").innerText="";
+      loadQuestion();
+    },2000);
+  } else {
+    setTimeout(()=>{
+      finishQuiz();
+    },2000);
+  }
+}
+
+function finishQuiz(){
+  document.getElementById("question").innerText="🎉 Quiz Finished!";
+  document.getElementById("options").innerHTML="";
+  document.getElementById("progress").innerText="";
+  document.getElementById("timer").innerText="";
+
+  document.getElementById("score").innerHTML=
+    `<div class="final-score">
+      Your Score: ${score} / ${quiz.length}
+      <br><br>
+      <button onclick="shareScore()">📲 Share Score</button>
+    </div>`;
+}
+
+function shareScore(){
+  const text = `I scored ${score}/${quiz.length} in Smart Daily Quiz! Can you beat me?`;
+  
+  if(navigator.share){
+    navigator.share({ text });
+  } else {
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+  }
+}
+
+function decodeHTML(html){
+  const txt=document.createElement("textarea");
+  txt.innerHTML=html;
+  return txt.value;
+}
+</script>
+
+</body>
+</html>
