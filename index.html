@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Daily Quiz Challenge</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f4f6f9;
+      padding: 20px;
+    }
+    .quiz-box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+      max-width: 400px;
+      margin: auto;
+    }
+    button {
+      padding: 10px 15px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background: #007bff;
+      color: white;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+<div class="quiz-box">
+  <h2>Daily Quiz Challenge</h2>
+
+  <div id="start-screen">
+    <p>Test your knowledge with our daily quiz!</p>
+    <button onclick="startQuiz()">Start Quiz</button>
+  </div>
+
+  <div id="quiz-screen" style="display:none;">
+    <p id="question"></p>
+    <div id="options"></div>
+    <p id="result"></p>
+    <p id="score"></p>
+  </div>
+
+</div>
+
+<script>
+  const quiz = [
+  {
+    question: "What is the capital of Japan?",
+    options: ["Tokyo", "Seoul", "Bangkok"],
+    answer: "Tokyo"
+  },
+  {
+    question: "If a train moves at 60 km/h, how much distance in 2 hours?",
+    options: ["100 km", "120 km", "140 km"],
+    answer: "120 km"
+  },
+  {
+    question: "Which vitamin is produced when sunlight hits your skin?",
+    options: ["Vitamin A", "Vitamin C", "Vitamin D"],
+    answer: "Vitamin D"
+  },
+  {
+    question: "HTML is mainly used for?",
+    options: ["Designing structure of webpage", "Making coffee", "Operating system"],
+    answer: "Designing structure of webpage"
+  },
+  {
+    question: "What comes next in pattern: 2, 4, 8, 16, ?",
+    options: ["24", "32", "20"],
+    answer: "32"
+  },
+  {
+    question: "Full form of CPU?",
+    options: ["Central Processing Unit", "Computer Personal Unit", "Central Power Utility"],
+    answer: "Central Processing Unit"
+  },
+  {
+    question: "If you invest ₹1000 at 10% interest for 1 year, total amount?",
+    options: ["₹1100", "₹100", "₹1010"],
+    answer: "₹1100"
+  },
+  {
+    question: "Which gas do humans inhale for survival?",
+    options: ["Carbon Dioxide", "Oxygen", "Nitrogen"],
+    answer: "Oxygen"
+  },
+  {
+    question: "Synonym of 'Rapid'?",
+    options: ["Slow", "Fast", "Weak"],
+    answer: "Fast"
+  },
+  {
+    question: "Which Indian state is known as 'Land of Five Rivers'?",
+    options: ["Punjab", "Bihar", "Odisha"],
+    answer: "Punjab"
+  }
+];
+
+  let currentQuestion = 0;
+  let score = 0;
+
+  function startQuiz() {
+    document.getElementById("start-screen").style.display = "none";
+    document.getElementById("quiz-screen").style.display = "block";
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    const q = quiz[currentQuestion];
+    document.getElementById("question").innerText = q.question;
+
+    const optionsDiv = document.getElementById("options");
+    optionsDiv.innerHTML = "";
+
+    q.options.forEach(option => {
+      const button = document.createElement("button");
+      button.innerText = option;
+      button.onclick = () => checkAnswer(option);
+      optionsDiv.appendChild(button);
+    });
+  }
+
+  function checkAnswer(selected) {
+  const correctAnswer = quiz[currentQuestion].answer;
+  const buttons = document.querySelectorAll("#options button");
+
+  buttons.forEach(btn => {
+    btn.disabled = true;
+
+    if (btn.innerText === correctAnswer) {
+      btn.style.backgroundColor = "green";
+    }
+
+    if (btn.innerText === selected && selected !== correctAnswer) {
+      btn.style.backgroundColor = "red";
+    }
+  });
+
+  if (selected === correctAnswer) {
+    score++;
+    document.getElementById("result").innerText = "Correct!";
+  } else {
+    document.getElementById("result").innerText =
+      "Wrong! Correct Answer: " + correctAnswer;
+  }
+
+  currentQuestion++;
+
+  if (currentQuestion < quiz.length) {
+    setTimeout(() => {
+      document.getElementById("result").innerText = "";
+      loadQuestion();
+    }, 2000);
+  } else {
+    setTimeout(() => {
+      document.getElementById("question").innerText = "Quiz Finished!";
+      document.getElementById("options").innerHTML = "";
+      document.getElementById("score").innerText =
+        "Your Score: " + score + " / " + quiz.length;
+    }, 2000);
+  }
+}
+</script>
+
+</body>
+</html>
